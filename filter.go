@@ -1,4 +1,4 @@
-package dfde
+package dfdegoregexp
 
 import (
 	"bufio"
