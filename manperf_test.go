@@ -1,6 +1,8 @@
-package main
+package dfdegoregexp
 
-import "testing"
+import (
+	"testing"
+)
 
 // FIXME: this is from Arch Linux, use Debian version for forum post
 var expectedSections = []string{"NAME", "SYNOPSIS", "DESCRIPTION", "EXAMPLES",
@@ -8,8 +10,8 @@ var expectedSections = []string{"NAME", "SYNOPSIS", "DESCRIPTION", "EXAMPLES",
 	"SEE ALSO", "HISTORY", "BUGS"}
 
 func TestExtractSectionsBad(t *testing.T) {
-	lines := commandOutput("man", "man")
-	actual := extractSectionsBad(lines)
+	lines := CommandOutput("man", "man")
+	actual := ExtractSectionsBad(lines)
 	for i, e := range expectedSections {
 		if actual[i] != e {
 			t.Errorf("expected actual[%d]==%s, was %s", i, e, actual[i])
@@ -18,8 +20,8 @@ func TestExtractSectionsBad(t *testing.T) {
 }
 
 func TestExtractSectionsBetter(t *testing.T) {
-	lines := commandOutput("man", "man")
-	actual := extractSectionsBetter(lines)
+	lines := CommandOutput("man", "man")
+	actual := ExtractSectionsBetter(lines)
 	for i, e := range expectedSections {
 		if actual[i] != e {
 			t.Errorf("expected actual[%d]==%s, was %s", i, e, actual[i])
@@ -28,8 +30,8 @@ func TestExtractSectionsBetter(t *testing.T) {
 }
 
 func TestExtractSectionsBetterPOSIX(t *testing.T) {
-	lines := commandOutput("man", "man")
-	actual := extractSectionsBetterPOSIX(lines)
+	lines := CommandOutput("man", "man")
+	actual := ExtractSectionsBetterPOSIX(lines)
 	for i, e := range expectedSections {
 		if actual[i] != e {
 			t.Errorf("expected actual[%d]==%s, was %s", i, e, actual[i])
@@ -41,27 +43,27 @@ func TestExtractSectionsBetterPOSIX(t *testing.T) {
 
 func BenchmarkExtractSectionsBad(b *testing.B) {
 	b.StopTimer()
-	lines := commandOutput("man", "man")
+	lines := CommandOutput("man", "man")
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		extractSectionsBad(lines)
+		ExtractSectionsBad(lines)
 	}
 }
 
 func BenchmarkExtractSectionsBetter(b *testing.B) {
 	b.StopTimer()
-	lines := commandOutput("man", "man")
+	lines := CommandOutput("man", "man")
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		extractSectionsBetter(lines)
+		ExtractSectionsBetter(lines)
 	}
 }
 
 func BenchmarkExtractSectionsBetterPOSIX(b *testing.B) {
 	b.StopTimer()
-	lines := commandOutput("man", "man")
+	lines := CommandOutput("man", "man")
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		extractSectionsBetterPOSIX(lines)
+		ExtractSectionsBetterPOSIX(lines)
 	}
 }

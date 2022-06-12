@@ -1,13 +1,19 @@
 package main
 
 import (
-	"dfde"
 	"fmt"
 	"os"
 	"os/exec"
+
+	dr "github.com/patrickbucher/dfdegoregexp"
 )
 
 func main() {
+	if len(os.Args) < 2 {
+		fmt.Fprintf(os.Stderr, "usage: %s [term]", os.Args[0])
+		os.Exit(1)
+	}
+
 	cmd := exec.Command("go", "doc", os.Args[1])
 	cmdOut, err := cmd.StdoutPipe()
 	if err != nil {
@@ -21,7 +27,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	dfde.FilterLines(`^func [A-Za-z]+\(`, cmdOut, os.Stdout)
+	dr.FilterLines(`^func [A-Za-z]+\(`, cmdOut, os.Stdout)
 
 	err = cmd.Wait()
 	if err != nil {

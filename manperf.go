@@ -1,23 +1,14 @@
-package main
+package dfdegoregexp
 
 import (
 	"bufio"
-	"fmt"
 	"io"
-	"os"
 	"os/exec"
 	"regexp"
 	"strings"
 )
 
-func main() {
-	lines := commandOutput(os.Args[1], os.Args[1:]...)
-	//fmt.Print(strings.Join(extractSectionsBad(lines), "\n"))
-	fmt.Print(strings.Join(extractSectionsBetter(lines), "\n"))
-	//fmt.Print(strings.Join(extractSectionsBetterPOSIX(lines), "\n"))
-}
-
-func extractSectionsBad(manpageLines []string) []string {
+func ExtractSectionsBad(manpageLines []string) []string {
 	sections := make([]string, 0)
 	for _, line := range manpageLines {
 		if ok, _ := regexp.MatchString("([A-Z]{2,})", line); ok {
@@ -28,7 +19,7 @@ func extractSectionsBad(manpageLines []string) []string {
 	return sections
 }
 
-func extractSectionsBetter(manpageLines []string) []string {
+func ExtractSectionsBetter(manpageLines []string) []string {
 	sections := make([]string, 0)
 	pattern := regexp.MustCompile(`^([A-Z][A-Z ]+)$`)
 	for _, line := range manpageLines {
@@ -40,7 +31,7 @@ func extractSectionsBetter(manpageLines []string) []string {
 	return sections
 }
 
-func extractSectionsBetterPOSIX(manpageLines []string) []string {
+func ExtractSectionsBetterPOSIX(manpageLines []string) []string {
 	sections := make([]string, 0)
 	pattern := regexp.MustCompilePOSIX(`^([A-Z][A-Z ]+)$`)
 	for _, line := range manpageLines {
@@ -52,7 +43,7 @@ func extractSectionsBetterPOSIX(manpageLines []string) []string {
 	return sections
 }
 
-func commandOutput(prog string, args ...string) []string {
+func CommandOutput(prog string, args ...string) []string {
 	cmd := exec.Command(prog, args...)
 	out, _ := cmd.StdoutPipe()
 	cmd.Start()
