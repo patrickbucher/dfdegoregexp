@@ -4,14 +4,17 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
 )
 
 func main() {
-	lines := commandOutput("man", "man")
-	fmt.Println(extractSectionsBad(lines))
+	lines := commandOutput(os.Args[1], os.Args[1:]...)
+	//fmt.Print(strings.Join(extractSectionsBad(lines), "\n"))
+	fmt.Print(strings.Join(extractSectionsBetter(lines), "\n"))
+	//fmt.Print(strings.Join(extractSectionsBetterPOSIX(lines), "\n"))
 }
 
 func extractSectionsBad(manpageLines []string) []string {
