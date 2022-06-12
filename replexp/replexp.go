@@ -28,9 +28,7 @@ func main() {
 			continue
 		}
 		if pattern.Match(line) {
-			fmt.Println("-> match")
-		} else {
-			fmt.Println("-> no match")
+			fmt.Print(string(line))
 		}
 	}
 }
