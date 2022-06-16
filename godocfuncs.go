@@ -6,6 +6,9 @@ import (
 	"regexp"
 )
 
+// TODO: this regexp must be written
+const FunctionDeclaration = `^func [A-Za-z]+\(`
+
 func FilterLines(pattern string, r io.Reader, w io.Writer) {
 	p := regexp.MustCompilePOSIX(pattern)
 	s := bufio.NewReader(r)

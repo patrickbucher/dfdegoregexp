@@ -1,10 +1,28 @@
-# Reguläre Ausdrücke ("regexp") in Go
+# Reguläre Ausdrücke in Go
+
+In diesem Kursteil geht es um Behandlung regulärer Ausdrücke (fortan: «Regexp»)
+in der Programmiersprache Go.
 
 ## Offizielle Dokumentation
 
+Go verfügt über sein eigenes Dokumentationssystem. Folgende Einträge (als Befehl
+angegeben, verlinkt auf die HTML-Dokumentation) sind besonders empfehlenswert.
+
 - [`go doc regexp`](https://pkg.go.dev/regexp)
-    - [`go doc regexp.Regexp`](https://pkg.go.dev/regexp#Regexp)
+- [`go doc regexp.Regexp`](https://pkg.go.dev/regexp#Regexp)
 - [`go doc regexp/syntax`](https://pkg.go.dev/regexp/syntax)
+
+Für eine Übung wird die Ausgabe von `go doc` benötigt. Von daher ist es besser,
+sich gleich mit dem Befehl vertraut zu machen, statt sich nur auf HTML-Version
+zu verlassen.
+
+## Dateien zum Download
+
+Da Go über keine REPL verfügt, sind die vorgestellten Programme etwas
+umfassender als etwa Python-Beispiele. Der Einfachheit halber können die ganzen
+Beispiele unter folgendem Link als Zip-Datei heruntergeladen werden:
+
+    TODO: Zip-Datei verlinken
 
 ## Syntax
 
@@ -22,11 +40,97 @@ Non-Deterministic Finite Automaton) wächst linear zur Eingabe. Andere
 Implementierungen haben eine wesentlich höhere Laufzeitkomplexität. Siehe dazu
 den Beitrag von Russ Cox: [Regular Expression Matching Can Be Simple And
 Fast](https://swtch.com/~rsc/regexp/regexp1.html) (Der Artikel ist von 2007: das
-Jahr, in dem die Entwicklung von Go lanciert worden ist ‒ u.a. von Ken Thompson.)
+Jahr, in dem die Entwicklung von Go lanciert worden ist ‒ u.a. von Ken Thompson.
+Russ Cox gehört zum Kernteam von Go.)
 
 ## Passt es? Einfaches Matching
 
-TODO: regexp.Match, MatchReader, MatchString...
+Ein einfaches Matching kann mit der Funktion `regexp.Match` umgesetzt werden:
+
+    func Match(pattern string, b []byte) (matched bool, err error)
+        Match reports whether the byte slice b contains any match of the regular
+        expression pattern. More complicated queries need to use Compile and the
+        full Regexp interface.
+
+Liegen die zu prüfenden Daten als String und nicht als Byte-Array vor, kann man
+`regexp.MatchString` verwenden:
+
+    func MatchString(pattern string, s string) (matched bool, err error)
+        MatchString reports whether the string s contains any match of the regular
+        expression pattern. More complicated queries need to use Compile and the
+        full Regexp interface.
+
+Das folgende Beispiel `reglexp` (eine Kombination aus «REPL» und «Regexp»)
+veranschaulicht die Verwendung der `Match`-Funktion:
+
+```go
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"io"
+	"os"
+	"regexp"
+)
+
+func main() {
+	if len(os.Args) < 2 {
+		fmt.Fprintf(os.Stderr, "usage: %s [regexp]\n", os.Args[0])
+		os.Exit(1)
+	}
+
+	var err error
+	pattern, err := regexp.Compile(os.Args[1])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "compile regexp `%s`: %v\n", os.Args[1], err)
+		os.Exit(2)
+	}
+
+	input := bufio.NewReader(os.Stdin)
+	var line []byte
+	for ; err != io.EOF; line, err = input.ReadBytes('\n') {
+		if len(line) == 0 {
+			continue
+		}
+		if pattern.Match(line) {
+			fmt.Print(string(line))
+		}
+	}
+}
+```
+
+Das Beispiel lässt sich folgendermassen starten:
+
+    $ go run replexp/main.go '#[A-Fa-f0-9]{6}'
+
+Als Kommandozeilenargument wird die Regexp `#[A-Fa-f0-9]{6}` verwendet, womit
+hexadezimale Farbangaben mit einleitendem Rautezeichen gematched werden können.
+Die Interaktion mit dem Programm sieht dann etwa folgendermassen aus:
+
+    #fff
+    #ffff
+    #FFFFFF
+    #FFFFFF
+    #ffffff
+    #ffffff
+    #222
+    #232323
+    #232323
+    #deaded
+    #deaded
+    #DeadEd
+    #DeadEd
+    #Deardr    
+
+Eingabezeilen werden nach Betätigung von `[Return]` nur dann erneut ausgegeben,
+sofern sie der Regexp genügen (`#FFFFFF`, `#ffffff`, `#232323` usw.).
+
+### Aufgabe 1
+
+Probiere verschiedene Regexp als Kommandozeilenparameter aus. Gib anschliessend
+Zeilen ein, und überlege dir vor der Betätigung von `[Return]`, ob die Zeile der
+Regexp genügt oder nicht.
 
 ## Kompilierung und `Regexp`-Typ
 

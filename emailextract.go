@@ -8,6 +8,7 @@ import (
 )
 
 var (
+	// TODO: This regexp must be written. Figure out group names according to switch/case below.
 	r = `^(?P<first>[a-z]+)\.?(?P<last>[a-z]+)?(?P<year>[0-9]{2,4})?@(?P<comp>[a-z]+)\.[a-z]+`
 	p = regexp.MustCompile(r)
 )

@@ -27,7 +27,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	dr.FilterLines(`^func [A-Za-z]+\(`, cmdOut, os.Stdout)
+	dr.FilterLines(dr.FunctionDeclaration, cmdOut, os.Stdout)
 
 	err = cmd.Wait()
 	if err != nil {
