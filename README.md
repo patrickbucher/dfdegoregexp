@@ -213,3 +213,96 @@ Ausprägungen für Byte-Arrays und Strings (`String`):
     func (re *Regexp) ReplaceAllLiteralString(src, repl string) string
     func (re *Regexp) ReplaceAllString(src, repl string) string
     func (re *Regexp) ReplaceAllStringFunc(src string, repl func(string) string) string
+
+Für die nächste Übung kommt das Programm `godocfuncs/main.go` zum Einsatz:
+
+```go
+package main
+
+import (
+	"fmt"
+	"os"
+	"os/exec"
+
+	dr "github.com/patrickbucher/dfdegoregexp"
+)
+
+func main() {
+	if len(os.Args) < 2 {
+		fmt.Fprintf(os.Stderr, "usage: %s [term]", os.Args[0])
+		os.Exit(1)
+	}
+
+	cmd := exec.Command("go", "doc", os.Args[1])
+	cmdOut, err := cmd.StdoutPipe()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
+	err = cmd.Start()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
+	dr.FilterLines(cmdOut, os.Stdout)
+
+	err = cmd.Wait()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+```
+
+Dieses lässt sich folgendermassen ausführen:
+
+    $ go run godocfuncs/main.go [package]
+
+Es erwartet als Argument den Namen eines Go-Pakets, wie z.B. `string`, `regexp`
+oder `regexp.Regexp`. Die Ausgabe der jeweiligen Dokumentationsseite (`go doc
+string`, `go doc regexp` usw.) soll so gefiltert werden, dass nur die zum Paket
+gehörigen Funktionsdeklarationen ausgegeben werden sollen. Hierzu wird die
+Regexp `functionDeclaration` und die Funktion `dr.FilterLines` verwendet,
+welche in der Datei `godocfuncs.go` definiert sind:
+
+```go
+package dfdegoregexp
+
+import (
+	"bufio"
+	"io"
+	"regexp"
+)
+
+const functionDeclaration = `` // TODO
+
+func FilterLines(r io.Reader, w io.Writer) {
+	p := regexp.MustCompilePOSIX(functionDeclaration)
+	s := bufio.NewReader(r)
+	var l []byte
+	var err error
+	for ; err != io.EOF; l, err = s.ReadBytes('\n') {
+		if p.Match(l) {
+			w.Write(l)
+		}
+	}
+}
+```
+
+### Aufgabe 4
+
+Die Regexp `functionDeclaration` (als String) muss ergänzt werden, damit das
+Programm korrekt arbeitet. Hier ein Beispiel für eine korrekte Ausgabe:
+
+    $ go run godocfuncs/main.go regexp
+    func Match(pattern string, b []byte) (matched bool, err error)
+    func MatchReader(pattern string, r io.RuneReader) (matched bool, err error)
+    func MatchString(pattern string, s string) (matched bool, err error)
+    func QuoteMeta(s string) string
+
+Die Datei `godocfuncs_test.go` enthält einen Testfall, der folgendermassen
+ausgeführt werden kann:
+
+    $ go test -run TestFilterFuncLines

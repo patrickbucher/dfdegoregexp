@@ -24,17 +24,16 @@ func Chdir(dir string) error
 func Chmod(name string, mode FileMode) error
 func Chown(name string, uid, gid int) error
 `
-	plainFuncsPattern = `^func [a-zA-Z]+\(`
 )
 
 func TestFilterFuncLines(t *testing.T) {
 	source := bytes.NewBufferString(goDocOSExcerpt)
 	sink := bytes.NewBufferString("")
-	FilterLines(plainFuncsPattern, source, sink)
+	FilterLines(source, sink)
 	got := strings.TrimSpace(sink.String())
 	expected := strings.TrimSpace(goDocOSFuncs)
 	if got != expected {
 		t.Errorf("filter lines by pattern '%s'\ngot:\n%s\nexpected:\n%s\n",
-			plainFuncsPattern, got, expected)
+			functionDeclaration, got, expected)
 	}
 }

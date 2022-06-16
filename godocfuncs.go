@@ -6,11 +6,10 @@ import (
 	"regexp"
 )
 
-// TODO: this regexp must be written
-const FunctionDeclaration = `^func [A-Za-z]+\(`
+const functionDeclaration = `` // TODO
 
-func FilterLines(pattern string, r io.Reader, w io.Writer) {
-	p := regexp.MustCompilePOSIX(pattern)
+func FilterLines(r io.Reader, w io.Writer) {
+	p := regexp.MustCompilePOSIX(functionDeclaration)
 	s := bufio.NewReader(r)
 	var l []byte
 	var err error
