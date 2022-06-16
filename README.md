@@ -64,40 +64,7 @@ Das folgende Beispiel `reglexp` (eine Kombination aus «REPL» und «Regexp»)
 veranschaulicht die Verwendung der `Match`-Funktion:
 
 ```go
-package main
-
-import (
-	"bufio"
-	"fmt"
-	"io"
-	"os"
-	"regexp"
-)
-
-func main() {
-	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "usage: %s [regexp]\n", os.Args[0])
-		os.Exit(1)
-	}
-
-	var err error
-	pattern, err := regexp.Compile(os.Args[1])
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "compile regexp `%s`: %v\n", os.Args[1], err)
-		os.Exit(2)
-	}
-
-	input := bufio.NewReader(os.Stdin)
-	var line []byte
-	for ; err != io.EOF; line, err = input.ReadBytes('\n') {
-		if len(line) == 0 {
-			continue
-		}
-		if pattern.Match(line) {
-			fmt.Print(string(line))
-		}
-	}
-}
+TODO: exercise version of replexp/main.go
 ```
 
 Das Beispiel lässt sich folgendermassen starten:
@@ -131,6 +98,10 @@ sofern sie der Regexp genügen (`#FFFFFF`, `#ffffff`, `#232323` usw.).
 Probiere verschiedene Regexp als Kommandozeilenparameter aus. Gib anschliessend
 Zeilen ein, und überlege dir vor der Betätigung von `[Return]`, ob die Zeile der
 Regexp genügt oder nicht.
+
+### Aufgabe 2
+
+Das Programm verwendet die ...
 
 ## Kompilierung und `Regexp`-Typ
 
