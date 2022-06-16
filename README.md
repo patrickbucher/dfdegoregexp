@@ -131,7 +131,18 @@ In der obigen Wiedergabe der REPL-Interaktion wird die Zeichenkette `#deadbeef`
 ausgegeben, obwohl diese länger als die geforderten sechs Zeichen ist. Warum ist
 das so, und wie lässt sich das korrigieren?
 
+### Aufgabe 3
+
+Das Programm verwendet die `regexp.Match`-Funktion, welche das Suchmuster als
+String und den Text, in dem zu suchen ist, als Byte-Array erwartet. Die
+`regexp.MatchString`-Funktion arbeitet mit zwei String-Argumenten. Was muss
+alles umgestellt werden, damit `MatchString` verwendet werden kann? (Siehe
+`input.ReadBytes` im Code.) Wird der Code durch die Umstellung insgesamt kürzer
+und/oder besser lesbar, oder verschlechtert sich die Situation eher?
+
 ## Kompilierung und `Regexp`-Typ
+
+
 
 - Compile
 - CompilePOSIX
