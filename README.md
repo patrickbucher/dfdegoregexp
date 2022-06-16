@@ -306,3 +306,9 @@ Die Datei `godocfuncs_test.go` enthält einen Testfall, der folgendermassen
 ausgeführt werden kann:
 
     $ go test -run TestFilterFuncLines
+
+## Weitere Aufgaben
+
+TODO: `manperf`
+
+TODO: `emailextract`
