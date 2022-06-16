@@ -142,35 +142,47 @@ und/oder besser lesbar, oder verschlechtert sich die Situation eher?
 
 ## Kompilierung und `Regexp`-Typ
 
+Regexp können kompiliert und wiederverwendet werden. Das `regexp`-Paket bietet
+vier Funktionen an, womit eine Regexp kompiliert und anschliessend als
+`Regexp`-Typ wiederverwendet werden können:
 
-
-- Compile
-- CompilePOSIX
-- MustCompile
-- MustCompilePOSIX
-
-Standardmässig wird die RE2-Syntax (PCRE mit kleinen Unterschieden) verwendet.
-Die Funktionen mit dem `POSIX`-Suffix schränken die Syntax auf EREs ein.
+- `func Compile(expr string) (*Regexp, error)`
+- `func CompilePOSIX(expr string) (*Regexp, error)`
+- `func MustCompile(str string) *Regexp`
+- `func MustCompilePOSIX(str string) *Regexp`
 
 Die Funktionen mit dem `Must`-Präfix werfen eine Runtime Panic, wenn der
 angegebene Ausdruck nicht kompiliert werden kann. Das ist besonders bei hart
 codierten regulären Ausdrücken sinnvoll, sodass fehlerhafter Code möglichst früh
-und offensichtlich scheitert.
+und offensichtlich scheitert. Die beiden Funktionen _ohne_ `Must`-Prefix geben
+stattdessen einen `error` zurück, wenn die Regexp nicht kompiliert werden kann.
 
-- Regexp
+Standardmässig wird die RE2-Syntax (PCRE mit kleinen Unterschieden) verwendet.
+Die Funktionen mit dem `POSIX`-Suffix schränken die Syntax auf EREs ein.
 
-Methode `Find` kombinierbar mit:
+Durch das optionale `Must`-Präfix und `POSIX`-Suffix ergeben sich die obigen
+vier Funktionen.
+
+Hat man durch gelungene Kompilierung eine `Regexp`-Struktur erhalten, bietet
+diese eine Vielzahl von Methoden an. Hier sollen nur die `Find`-Methode und die
+`Replace`-Methode mit ihren verschiedenen Ausprägungen von Interesse sein.
+(`Match` und `MatchString` sind auf der `Regexp`-Struktur analog zu gebrauchen
+wie vom `regexp`-Modul.)
+
+Die Methode `Find` gibt es in verschiedenen Ausprägungen. Die folgenden Suffixe
+können in der angegebenen Reihenfolge angefügt werden, um die jeweilige Semantik
+zu erhalten. (Hier wird auf eine Eindeutschung der Dokumentation verzichtet):
 
 - `All`: matches successive non-overlapping matches of the entire expression
-- `Index`: matches and submatches are identified by byte index pairs within the input string
 - `String`: the argument is a string; otherwise it is a slice of bytes
 - `Submatch`: the return value is a slice identifying the successive submatches of the expression
+- `Index`: matches and submatches are identified by byte index pairs within the input string
 
-Die Methodennamen folgen dem Ausdruck:
+Die Methodennamen folgen der Regexp:
 
     Find(All)?(String)?(Submatch)?(Index)?
 
-Das ergibt Methoden wie:
+Somit sind folgende Methoden vorhanden:
 
     func (re *Regexp) Find(b []byte) []byte
     func (re *Regexp) FindAll(b []byte, n int) [][]byte
@@ -191,7 +203,9 @@ Das ergibt Methoden wie:
     func (re *Regexp) FindSubmatch(b []byte) [][]byte
     func (re *Regexp) FindSubmatchIndex(b []byte) []int
 
-Weiter gibt es die `Replace`-Methoden:
+Bei den `Replace`-Methoden gibt es wiederum Varianten zur Ersetzung des
+gefundenen Textes mit Literalen (`Literal`) bzw. einer Funktion (`Func`), sowie
+Ausprägungen für Byte-Arrays und Strings (`String`):
 
     func (re *Regexp) ReplaceAll(src, repl []byte) []byte
     func (re *Regexp) ReplaceAllFunc(src []byte, repl func([]byte) []byte) []byte
@@ -199,7 +213,3 @@ Weiter gibt es die `Replace`-Methoden:
     func (re *Regexp) ReplaceAllLiteralString(src, repl string) string
     func (re *Regexp) ReplaceAllString(src, repl string) string
     func (re *Regexp) ReplaceAllStringFunc(src string, repl func(string) string) string
-
-Und `Split`:
-
-    func (re *Regexp) Split(s string, n int) []string
