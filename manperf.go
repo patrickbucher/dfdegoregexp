@@ -31,18 +31,6 @@ func ExtractSectionsBetter(manpageLines []string) []string {
 	return sections
 }
 
-func ExtractSectionsBetterPOSIX(manpageLines []string) []string {
-	sections := make([]string, 0)
-	pattern := regexp.MustCompilePOSIX(`^([A-Z][A-Z ]+)$`)
-	for _, line := range manpageLines {
-		section := pattern.FindString(strings.TrimRight(line, "\n"))
-		if section != "" {
-			sections = append(sections, section)
-		}
-	}
-	return sections
-}
-
 func CommandOutput(prog string, args ...string) []string {
 	cmd := exec.Command(prog, args...)
 	out, _ := cmd.StdoutPipe()

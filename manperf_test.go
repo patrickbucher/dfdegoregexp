@@ -4,10 +4,9 @@ import (
 	"testing"
 )
 
-// FIXME: this is from Arch Linux, use Debian version for forum post
 var expectedSections = []string{"NAME", "SYNOPSIS", "DESCRIPTION", "EXAMPLES",
 	"OVERVIEW", "DEFAULTS", "OPTIONS", "EXIT STATUS", "ENVIRONMENT", "FILES",
-	"SEE ALSO", "HISTORY", "BUGS"}
+	"SEE ALSO", "HISTORY"}
 
 func TestExtractSectionsBad(t *testing.T) {
 	lines := CommandOutput("man", "man")
@@ -22,16 +21,6 @@ func TestExtractSectionsBad(t *testing.T) {
 func TestExtractSectionsBetter(t *testing.T) {
 	lines := CommandOutput("man", "man")
 	actual := ExtractSectionsBetter(lines)
-	for i, e := range expectedSections {
-		if actual[i] != e {
-			t.Errorf("expected actual[%d]==%s, was %s", i, e, actual[i])
-		}
-	}
-}
-
-func TestExtractSectionsBetterPOSIX(t *testing.T) {
-	lines := CommandOutput("man", "man")
-	actual := ExtractSectionsBetterPOSIX(lines)
 	for i, e := range expectedSections {
 		if actual[i] != e {
 			t.Errorf("expected actual[%d]==%s, was %s", i, e, actual[i])
@@ -56,14 +45,5 @@ func BenchmarkExtractSectionsBetter(b *testing.B) {
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		ExtractSectionsBetter(lines)
-	}
-}
-
-func BenchmarkExtractSectionsBetterPOSIX(b *testing.B) {
-	b.StopTimer()
-	lines := CommandOutput("man", "man")
-	b.StartTimer()
-	for i := 0; i < b.N; i++ {
-		ExtractSectionsBetterPOSIX(lines)
 	}
 }
