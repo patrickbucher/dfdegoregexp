@@ -64,7 +64,35 @@ Das folgende Beispiel `reglexp` (eine Kombination aus «REPL» und «Regexp»)
 veranschaulicht die Verwendung der `Match`-Funktion:
 
 ```go
-TODO: exercise version of replexp/main.go
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"io"
+	"os"
+	"regexp"
+)
+
+func main() {
+	if len(os.Args) < 2 {
+		fmt.Fprintf(os.Stderr, "usage: %s [regexp]\n", os.Args[0])
+		os.Exit(1)
+	}
+	pattern := os.Args[1]
+
+	input := bufio.NewReader(os.Stdin)
+	var line []byte
+	var err error
+	for ; err != io.EOF; line, err = input.ReadBytes('\n') {
+		if len(line) == 0 {
+			continue
+		}
+		if ok, _ := regexp.Match(pattern, line); ok {
+			fmt.Print(string(line))
+		}
+	}
+}
 ```
 
 Das Beispiel lässt sich folgendermassen starten:
@@ -75,23 +103,21 @@ Als Kommandozeilenargument wird die Regexp `#[A-Fa-f0-9]{6}` verwendet, womit
 hexadezimale Farbangaben mit einleitendem Rautezeichen gematched werden können.
 Die Interaktion mit dem Programm sieht dann etwa folgendermassen aus:
 
-    #fff
-    #ffff
     #FFFFFF
     #FFFFFF
     #ffffff
     #ffffff
-    #222
     #232323
     #232323
-    #deaded
-    #deaded
-    #DeadEd
-    #DeadEd
-    #Deardr    
+    #abc
+    #foobar
+    #deadbeef
+    #deadbeef
+    #999    
 
 Eingabezeilen werden nach Betätigung von `[Return]` nur dann erneut ausgegeben,
-sofern sie der Regexp genügen (`#FFFFFF`, `#ffffff`, `#232323` usw.).
+sofern sie der Regexp genügen (`#FFFFFF`, `#ffffff`, `#232323` usw.),
+andernfalls (`#abc`, `#foobar`, `#999`) jedoch nicht.
 
 ### Aufgabe 1
 
@@ -101,7 +127,9 @@ Regexp genügt oder nicht.
 
 ### Aufgabe 2
 
-Das Programm verwendet die ...
+In der obigen Wiedergabe der REPL-Interaktion wird die Zeichenkette `#deadbeef`
+ausgegeben, obwohl diese länger als die geforderten sechs Zeichen ist. Warum ist
+das so, und wie lässt sich das korrigieren?
 
 ## Kompilierung und `Regexp`-Typ
 
