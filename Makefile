@@ -1,4 +1,6 @@
-.PHONY: clean
+.PHONY: all clean
+
+all: dfdegoregexp.zip dfdegoregexp.txt dfdegoregexp.man
 
 dfdegoregexp.zip: go.mod go.sum *.go replexp/*.go godocfuncs/*.go manperf/*.go
 	rm -f dfdegoregexp
@@ -10,6 +12,11 @@ dfdegoregexp.zip: go.mod go.sum *.go replexp/*.go godocfuncs/*.go manperf/*.go
 	zip $@ -r dfdegoregexp
 	rm -rf dfdegoregexp
 
+dfdegoregexp.txt: README.md
+	pandoc -s -t plain $< -o $@
+
+dfdegoregexp.man: README.md
+	pandoc -V title=dfdegoregexp -V section=7 -s -t man $< -o $@
+
 clean:
-	rm -rf dfdegoregexp
-	rm -f dfdegoregexp.zip
+	rm -rf dfdegoregexp *.zip *.txt *.man

@@ -43,7 +43,7 @@ Non-Deterministic Finite Automaton) wächst linear zur Eingabe. Andere
 Implementierungen haben eine wesentlich höhere Laufzeitkomplexität. Siehe dazu
 den Beitrag von Russ Cox: [Regular Expression Matching Can Be Simple And
 Fast](https://swtch.com/~rsc/regexp/regexp1.html) (Der Artikel ist von 2007: das
-Jahr, in dem die Entwicklung von Go lanciert worden ist ‒ u.a. von Ken Thompson.
+Jahr, in dem die Entwicklung von Go lanciert worden ist; u.a. von Ken Thompson.
 Russ Cox gehört mittlerweile zum Kernteam von Go.)
 
 ## Passt es? Einfaches Matching
