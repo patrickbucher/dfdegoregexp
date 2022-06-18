@@ -7,7 +7,7 @@ in der Programmiersprache Go.
 
 Go verfügt über sein eigenes Dokumentationssystem (`go doc`). Folgende Einträge
 (als Befehl angegeben, verlinkt auf die HTML-Dokumentation) sind für das
-vorliegende Thema empfehlenswert.
+vorliegende Thema empfehlenswert:
 
 - [`go doc regexp`](https://pkg.go.dev/regexp)
 - [`go doc regexp.Regexp`](https://pkg.go.dev/regexp#Regexp)
@@ -23,7 +23,8 @@ Da Go über keine REPL verfügt, sind die vorgestellten Programme etwas
 umfassender als etwa Python-Beispiele. Der Einfachheit halber können die ganzen
 Beispiele unter folgendem Link als Zip-Datei heruntergeladen werden:
 
-    TODO: Zip-Datei verlinken
+- v0.0.1: [dfdegoregexp.zip](https://github.com/patrickbucher/dfdegoregexp/releases/download/v0.0.1/dfdegoregexp.zip)
+- v0.1.0 (Release folgt): [dfdegoregexp.zip](https://github.com/patrickbucher/dfdegoregexp/releases/download/v0.1.0/dfdegoregexp.zip)
 
 ## Syntax
 
@@ -164,8 +165,8 @@ Darauf ist im Code entsprechend zu reagieren.
 Standardmässig wird die RE2-Syntax (PCRE mit kleinen Unterschieden) verwendet.
 Die Funktionen mit dem `POSIX`-Suffix schränken die Syntax auf EREs ein.
 
-Durch das optionale `Must`-Präfix und `POSIX`-Suffix ergeben sich die obigen
-vier Funktionen.
+Durch die optionalen Präfixe `Must` und `POSIX` ergeben sich die obigen vier
+Funktionen.
 
 Hat man durch gelungene Kompilierung eine `Regexp`-Struktur erhalten, bietet
 diese eine Vielzahl von Methoden an. Hier sollen nur die `Find`-Methode und die
@@ -360,7 +361,7 @@ mit `dr` verkürzt), welche allesamt in `manperf.go` definiert sind:
 
 ### Aufgabe 5
 
-Öffne die Datei `manperf_test.go` und betrachte das String-Slice
+Öffne die Datei `manperf_test.go` und betrachte den String-Slice
 `expectedSections`. Rufe nun `man man` auf, und überprüfe, ob die in
 `expectedSections` aufgelisteten Sektionen mit der tatsächlichen Ausgabe von
 `man man` übereistimmen; auch in ihrer Reihenfolge. Nimm Korrekturen daran vor,
@@ -404,13 +405,12 @@ Idee gekommen bist.)
 
 Ist die Variante der `Compile`-Funktion mit dem `POSIX`-Suffix schneller? Warum (nicht)?
 
-## Parsen von E-Mails, Gruppen
+## Parsen von E-Mails; Gruppen
 
-Im letzten Beispiel sollen Informationen aus E-Mail-Adressen von einem
-bestimmten Format ausgelesen werden. Die E-Mail-Adressen liegen in verschiedenen
-Formaten vor. Diese Formate sollen hier nicht definiert, sondern nur anhand
-vorgegebener Testfälle beschrieben werden. (Die zu implementierenden Regeln sind
-also induktiv zu erschliessen.)
+Im letzten Beispiel sollen Informationen aus E-Mail-Adressen ausgelesen werden.
+Die E-Mail-Adressen liegen in verschiedenen Formaten vor. Diese Formate sollen
+hier nicht definiert, sondern nur anhand vorgegebener Testfälle beschrieben
+werden. (Die zu implementierenden Regeln sind also induktiv zu erschliessen.)
 
 Die Datei `emailextract_test.go` definiert die Testfälle:
 
@@ -442,13 +442,13 @@ func TestEmailExtract(t *testing.T) {
 }
 ```
 
-Eine E-Mail-Adresse kann folgende Elemente kombinieren:
+Eine E-Mail-Adresse kann folgende Elemente enthalten:
 
-- einen Vornamen (immer vorhanden)
-- einen Nachnamen (optional, nach dem Punkt)
-- ein Geburtsdatum (optional, vor dem `@`-Zeichen; eine zweistellige Zahl
+1. einen Vornamen (immer vorhanden)
+2. einen Nachnamen (optional, nach dem Punkt)
+3. ein Geburtsdatum (optional, vor dem `@`-Zeichen; eine zweistellige Zahl
   impliziert das 20. Jahrhundert)
-- einen Firmennamen (immer vorhanden, Domain ohne TLD; in Grossbuchstaben)
+4. einen Firmennamen (immer vorhanden, Domain ohne TLD; in Grossbuchstaben)
 
 Die Implementierung liegt in der Datei `emailextract.go` vor:
 
