@@ -2,6 +2,7 @@ package dfdegoregexp
 
 import (
 	"bufio"
+	"errors"
 	"io"
 	"os/exec"
 	"regexp"
@@ -31,7 +32,7 @@ func CommandOutput(prog string, args ...string) []string {
 	lines := make([]string, 0)
 	var err error
 	var line string
-	for ; err != io.EOF; line, err = r.ReadString('\n') {
+	for ; !errors.Is(err, io.EOF); line, err = r.ReadString('\n') {
 		lines = append(lines, line)
 	}
 	return lines

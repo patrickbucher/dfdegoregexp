@@ -2,6 +2,7 @@ package dfdegoregexp
 
 import (
 	"bufio"
+	"errors"
 	"io"
 	"regexp"
 )
@@ -13,7 +14,7 @@ func FilterLines(r io.Reader, w io.Writer) {
 	s := bufio.NewReader(r)
 	var l []byte
 	var err error
-	for ; err != io.EOF; l, err = s.ReadBytes('\n') {
+	for ; !errors.Is(err, io.EOF); l, err = s.ReadBytes('\n') {
 		if p.Match(l) {
 			w.Write(l)
 		}

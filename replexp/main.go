@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -18,7 +19,7 @@ func main() {
 	input := bufio.NewReader(os.Stdin)
 	var line []byte
 	var err error
-	for ; err != io.EOF; line, err = input.ReadBytes('\n') {
+	for ; !errors.Is(err, io.EOF); line, err = input.ReadBytes('\n') {
 		if len(line) == 0 {
 			continue
 		}
