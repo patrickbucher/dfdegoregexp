@@ -28,8 +28,6 @@ func TestExtractSectionsBetter(t *testing.T) {
 	}
 }
 
-// run only benchmark: go test -bench . -run ^$
-
 func BenchmarkExtractSectionsBad(b *testing.B) {
 	b.StopTimer()
 	lines := CommandOutput("man", "man")

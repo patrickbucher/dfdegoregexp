@@ -5,7 +5,6 @@ import (
 	"io"
 	"os/exec"
 	"regexp"
-	"strings"
 )
 
 func ExtractSectionsBad(manpageLines []string) []string {
@@ -20,15 +19,8 @@ func ExtractSectionsBad(manpageLines []string) []string {
 }
 
 func ExtractSectionsBetter(manpageLines []string) []string {
-	sections := make([]string, 0)
-	pattern := regexp.MustCompile(`^([A-Z][A-Z ]+)$`)
-	for _, line := range manpageLines {
-		section := pattern.FindString(strings.TrimRight(line, "\n"))
-		if section != "" {
-			sections = append(sections, section)
-		}
-	}
-	return sections
+	// TODO: implement function
+	return make([]string, 0)
 }
 
 func CommandOutput(prog string, args ...string) []string {

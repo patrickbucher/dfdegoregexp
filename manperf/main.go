@@ -17,7 +17,6 @@ func main() {
 	lines := dr.CommandOutput(os.Args[1], os.Args[1:]...)
 	fmt.Print(strings.Join(dr.ExtractSectionsBad(lines), "\n"))
 
-	// TODO: implement
+	// TODO: call function, once implemented
 	// fmt.Print(strings.Join(dr.ExtractSectionsBetter(lines), "\n"))
-	// fmt.Print(strings.Join(dr.ExtractSectionsBetterPOSIX(lines), "\n"))
 }

@@ -5,8 +5,9 @@ in der Programmiersprache Go.
 
 ## Offizielle Dokumentation
 
-Go verfügt über sein eigenes Dokumentationssystem. Folgende Einträge (als Befehl
-angegeben, verlinkt auf die HTML-Dokumentation) sind besonders empfehlenswert.
+Go verfügt über sein eigenes Dokumentationssystem (`go doc`). Folgende Einträge
+(als Befehl angegeben, verlinkt auf die HTML-Dokumentation) sind für das
+vorliegende Thema empfehlenswert.
 
 - [`go doc regexp`](https://pkg.go.dev/regexp)
 - [`go doc regexp.Regexp`](https://pkg.go.dev/regexp#Regexp)
@@ -35,7 +36,9 @@ genommen handelt es sich um die Syntax von
 Die regexp-Implementierung von Go basiert auf der Arbeit von Ken Thompson in den
 1960er-Jahren. Diese Implementierung wird auch in `grep` und `awk` verwendet.
 Sie basiert auf endlichen Automaten und soll in ca. 400 Zeilen C-Code umsetzbar
-sein. Die Laufzeitkomplexität dieser Implementierung (_Thompson NFA_: Thompson
+sein.
+
+Die Laufzeitkomplexität dieser Implementierung (_Thompson NFA_: Thompson
 Non-Deterministic Finite Automaton) wächst linear zur Eingabe. Andere
 Implementierungen haben eine wesentlich höhere Laufzeitkomplexität. Siehe dazu
 den Beitrag von Russ Cox: [Regular Expression Matching Can Be Simple And
@@ -156,6 +159,7 @@ angegebene Ausdruck nicht kompiliert werden kann. Das ist besonders bei hart
 codierten regulären Ausdrücken sinnvoll, sodass fehlerhafter Code möglichst früh
 und offensichtlich scheitert. Die beiden Funktionen _ohne_ `Must`-Prefix geben
 stattdessen einen `error` zurück, wenn die Regexp nicht kompiliert werden kann.
+Darauf ist im Code entsprechend zu reagieren.
 
 Standardmässig wird die RE2-Syntax (PCRE mit kleinen Unterschieden) verwendet.
 Die Funktionen mit dem `POSIX`-Suffix schränken die Syntax auf EREs ein.
@@ -182,7 +186,9 @@ Die Methodennamen folgen der Regexp:
 
     Find(All)?(String)?(Submatch)?(Index)?
 
-Somit sind folgende Methoden vorhanden:
+Somit sind folgende Methoden vorhanden (zwei Varianten, die auf einem
+`io.RuneReader` basieren, sind der Vollständigkeit halber unten noch
+aufgeführt):
 
     func (re *Regexp) Find(b []byte) []byte
     func (re *Regexp) FindAll(b []byte, n int) [][]byte
@@ -194,14 +200,15 @@ Somit sind folgende Methoden vorhanden:
     func (re *Regexp) FindAllSubmatch(b []byte, n int) [][][]byte
     func (re *Regexp) FindAllSubmatchIndex(b []byte, n int) [][]int
     func (re *Regexp) FindIndex(b []byte) (loc []int)
-    func (re *Regexp) FindReaderIndex(r io.RuneReader) (loc []int)
-    func (re *Regexp) FindReaderSubmatchIndex(r io.RuneReader) []int
     func (re *Regexp) FindString(s string) string
     func (re *Regexp) FindStringIndex(s string) (loc []int)
     func (re *Regexp) FindStringSubmatch(s string) []string
     func (re *Regexp) FindStringSubmatchIndex(s string) []int
     func (re *Regexp) FindSubmatch(b []byte) [][]byte
     func (re *Regexp) FindSubmatchIndex(b []byte) []int
+
+    func (re *Regexp) FindReaderIndex(r io.RuneReader) (loc []int)
+    func (re *Regexp) FindReaderSubmatchIndex(r io.RuneReader) []int
 
 Bei den `Replace`-Methoden gibt es wiederum Varianten zur Ersetzung des
 gefundenen Textes mit Literalen (`Literal`) bzw. einer Funktion (`Func`), sowie
@@ -260,12 +267,12 @@ Dieses lässt sich folgendermassen ausführen:
 
     $ go run godocfuncs/main.go [package]
 
-Es erwartet als Argument den Namen eines Go-Pakets, wie z.B. `string`, `regexp`
-oder `regexp.Regexp`. Die Ausgabe der jeweiligen Dokumentationsseite (`go doc
-string`, `go doc regexp` usw.) soll so gefiltert werden, dass nur die zum Paket
-gehörigen Funktionsdeklarationen ausgegeben werden sollen. Hierzu wird die
-Regexp `functionDeclaration` und die Funktion `dr.FilterLines` verwendet,
-welche in der Datei `godocfuncs.go` definiert sind:
+Es erwartet als Argument den Namen eines Go-Pakets oder -Symbols, wie z.B.
+`string`, `regexp` oder `regexp.Regexp`. Die Ausgabe der jeweiligen
+Dokumentationsseite (`go doc string`, `go doc regexp` usw.) soll so gefiltert
+werden, dass nur die zum Paket gehörigen Funktionsdeklarationen ausgegeben
+werden sollen. Hierzu wird die Regexp `functionDeclaration` und die Funktion
+`dr.FilterLines` verwendet, welche in der Datei `godocfuncs.go` definiert sind:
 
 ```go
 package dfdegoregexp
@@ -307,8 +314,94 @@ ausgeführt werden kann:
 
     $ go test -run TestFilterFuncLines
 
-## Weitere Aufgaben
+## Sektionen von Manpages
 
-TODO: `manperf`
+Das Programm `manperf/main.go` erwartet als Argumente einen beliebigen Befehl
+mit Kommandozeilenargumenten (z.B. `man 3 printf` oder `man go`). Der angegebene
+Befehl wird ausgeführt, und die Ausgabe davon vom Programm abgefangen. Aus der
+Ausgabe, die hierzu in der Form einer Manpage vorliegen muss, werden nun die
+einzelnen Sektionstitel extrahiert:
 
-TODO: `emailextract`
+```go
+package main
+
+import (
+	"fmt"
+	"os"
+	"strings"
+
+	dr "github.com/patrickbucher/dfdegoregexp"
+)
+
+func main() {
+	if len(os.Args) < 2 {
+		fmt.Fprintf(os.Stderr, "usage: %s [command] [arguments]", os.Args[0])
+		os.Exit(1)
+	}
+
+	lines := dr.CommandOutput(os.Args[1], os.Args[1:]...)
+	fmt.Print(strings.Join(dr.ExtractSectionsBad(lines), "\n"))
+
+	// TODO: implement
+	// fmt.Print(strings.Join(dr.ExtractSectionsBetter(lines), "\n"))
+}
+```
+
+Hierzu werden drei Funktionen aus dem Paket `dfdegoregexp` verwendet (Importname
+mit `dr` verkürzt), welche allesamt in `manperf.go` definiert sind:
+
+- `CommandOutput`: Die Funktion führt das angegebene Programm mit Argumenten aus
+  und liefert dessen Ausgabe als ein String-Slice zurück.
+- `ExtractSectionsBad`: Die Funktion extrahiert die
+  Sektionstitel aus der gegebenen Ausgabe und liefert sie als String-Slice
+  zurück. **Die Implementierung ist fehlerhaft und inperformant!**
+- `ExtractSectionsBetter`: Die Funktion ist noch zu implementieren und aus
+  `manperf/main.go` aufzurufen.
+
+### Aufgabe 5
+
+Öffne die Datei `manperf_test.go` und betrachte das String-Slice
+`expectedSections`. Rufe nun `man man` auf, und überprüfe, ob die in
+`expectedSections` aufgelisteten Sektionen mit der tatsächlichen Ausgabe von
+`man man` übereistimmen; auch in ihrer Reihenfolge. Nimm Korrekturen daran vor,
+falls nötig.
+
+### Aufgabe 6
+
+Implementiere die Funktion `ExtractSectionsBetter`, sodass der entsprechende
+Testfall `TestExtractSectionsBetter` durchläuft. Dieser kann folgendermassen
+ausgeführt werden:
+
+    $ go test -run TestExtractSectionsBetter
+
+Läuft der Test durch, kannst du das Programm `manperf/main.go` so umschreiben,
+dass die neue Funktion `ExtractSectionsBetter` anstelle von `ExtractSectionsBad`
+verwendet wird. Rufe nun das Programm mit einer beliebigen Manpage aus, und
+kontrolliere dessen Ausgabe, z.B.:
+
+    $ go run manperf/main.go man 3 printf
+
+### Aufgabe 7
+
+Übertrage die funktioniertende Regexp aus der Funktion `ExtractSectionsBetter`
+nach `ExtractSectionsBad`, sodass nun beide Testfälle durchlaufen:
+
+    $ go test -run TestExtractSections.*
+
+Verändere aber nicht die Struktur der Funktion `ExtractSectionsBad` und
+verzichte auf eine kompilierte Regexp.
+
+Starte nun die Benchmarks für die beiden Funktionen (ohne Tests):
+
+    $ go test -bench . -run ^$
+
+(Dem aufmerksamen Leser dürfte mittlerweile aufgefallen sein, dass das Go-Tool
+auch reguläre Ausdrücke zur Selektion von Benchmarks und Testfällen akzeptiert.)
+
+Versuche die Implementierung von `ExtractSectionsBetter` schnell zu machen.
+(Tipp: verwende eine kompilierte `regexp.Regexp`, falls du noch nicht auf diese
+Idee gekommen bist.)
+
+Ist die Variante der `Compile`-Funktion mit dem `POSIX`-Suffix schneller? Warum (nicht)?
+
+## Parsen von E-Mails, Gruppen
