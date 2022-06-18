@@ -1,3 +1,3 @@
 module github.com/patrickbucher/dfdegoregexp
 
-go 1.18
+go 1.11
