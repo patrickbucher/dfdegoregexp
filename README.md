@@ -405,3 +405,145 @@ Idee gekommen bist.)
 Ist die Variante der `Compile`-Funktion mit dem `POSIX`-Suffix schneller? Warum (nicht)?
 
 ## Parsen von E-Mails, Gruppen
+
+Im letzten Beispiel sollen Informationen aus E-Mail-Adressen von einem
+bestimmten Format ausgelesen werden. Die E-Mail-Adressen liegen in verschiedenen
+Formaten vor. Diese Formate sollen hier nicht definiert, sondern nur anhand
+vorgegebener Testfälle beschrieben werden. (Die zu implementierenden Regeln sind
+also induktiv zu erschliessen.)
+
+Die Datei `emailextract_test.go` definiert die Testfälle:
+
+```go
+package dfdegoregexp
+
+import "testing"
+
+type testCase struct {
+	email, desc string
+}
+
+var tests = []testCase{
+	{"joey@foobar.com", "Joey, FOOBAR"},
+	{"harry.callahan@sfpd.gov", "Harry Callahan, SFPD"},
+	{"homer.simpson69@aol.com", "Homer Simpson, *1969, AOL"},
+	{"stan.marsh2012@southpark.com", "Stan Marsh, *2012, SOUTHPARK"},
+	{"julius.caesar@rom.it", "Julius Caesar, ROM"},
+}
+
+func TestEmailExtract(t *testing.T) {
+	for _, test := range tests {
+		expected := test.desc
+		actual := Extract(test.email)
+		if actual != expected {
+			t.Errorf(`Extract("%s"): expected "%s", got "%s"`, test.email, expected, actual)
+		}
+	}
+}
+```
+
+Eine E-Mail-Adresse kann folgende Elemente kombinieren:
+
+- einen Vornamen (immer vorhanden)
+- einen Nachnamen (optional, nach dem Punkt)
+- ein Geburtsdatum (optional, vor dem `@`-Zeichen; eine zweistellige Zahl
+  impliziert das 20. Jahrhundert)
+- einen Firmennamen (immer vorhanden, Domain ohne TLD; in Grossbuchstaben)
+
+Die Implementierung liegt in der Datei `emailextract.go` vor:
+
+```go
+package dfdegoregexp
+
+import (
+	"fmt"
+	"regexp"
+)
+
+var (
+	// TODO: This regexp must be written. Figure out group names according to switch/case below.
+	r = ``
+	p = regexp.MustCompile(r)
+)
+
+type emailInfo struct {
+	first, last, company string
+	year                 int
+}
+
+func (e emailInfo) String() string {
+	if e.first == "" || e.company == "" {
+		return ""
+	}
+	var y int
+	if e.year != 0 {
+		if e.year >= 100 {
+			y = e.year
+		} else {
+			y = 1900 + e.year
+		}
+	}
+	if e.last != "" && y != 0 {
+		return fmt.Sprintf("%s %s, *%d, %s", e.first, e.last, y, e.company)
+	}
+	if e.last != "" && y == 0 {
+		return fmt.Sprintf("%s %s, %s", e.first, e.last, e.company)
+	}
+	if e.last == "" && y == 0 {
+		return fmt.Sprintf("%s, %s", e.first, e.company)
+	}
+	return ""
+}
+
+func Extract(email string) string {
+	matches := p.FindStringSubmatch(email)
+	if len(matches) == 0 {
+		return ""
+	}
+	var ei emailInfo
+	for i, name := range p.SubexpNames() {
+		switch name {
+		case "first":
+			// TODO
+		case "last":
+			// TODO
+		case "year":
+			// TODO
+		case "comp":
+			// TODO
+		}
+	}
+	return ei.String()
+}
+```
+
+Die Funktion `Extract` nimmt einen String (die E-Mail-Adresse) entgegen, und
+gibt einen neuen String zurück. Das ganze passiert in mehreren Schritten:
+
+1. Das Pattern `p` wird auf die E-Mail-Adresse angewendet, um Matches zu
+   erzeugen (siehe `go doc regexp.FindStringSubmatch`).
+2. Die Matches von `p` werden abgearbeitet. Mit `p.SubexpNames` (siehe `go doc
+   regexp.SubexpNames`) erhält man eine Map, deren Key den Index und Value den
+   Namen des Matches bezeichnet (`i` kann als Index für `matches` verwendet
+   werden).
+3. Es wird eine `emailInfo`-Struktur erstellt, auf der die extrahierten
+   Informationen gesammelt werden können. Anhand des Gruppennamens können die
+   ausgelesenen Informationen mithilfe von `switch`/`case` ins richtige Feld der
+   `emailInfo`-Struktur abgelegt werden. (Siehe `go doc strconv.Atoi` für
+   Konvertierungen von String zu Integer).
+4. Zuletzt wird die `String`-Methode von `emailInfo` verwendet, um die
+   extrahierten Informationen in der Form auszugeben, wie sie vom Testfall
+   erwartet werden. (Die `String`-Methode ist bereits korrekt implementiert.)
+
+### Aufgabe 8
+
+Rufe die Dokumentation zu Regexp-Syntax (`go doc regexp/syntax`) auf und finde
+heraus, wie man «named capturing groups» definiert.
+
+Definiere nun die Regexp (Variable `r` oben an der Datei `emailextract.go`) und
+implementiere die Funktion `Extract` zu Ende, indem zu die `TODO`-Zeilen
+innerhalb der `switch`/`case`-Kontrollstruktur abarbeitest.
+
+Führe den Testfall aus, um die Implementierung zu überprüfen:
+
+    $ go test -run TestEmailExtract

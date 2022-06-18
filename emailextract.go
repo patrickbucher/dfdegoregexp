@@ -3,13 +3,11 @@ package dfdegoregexp
 import (
 	"fmt"
 	"regexp"
-	"strconv"
-	"strings"
 )
 
 var (
 	// TODO: This regexp must be written. Figure out group names according to switch/case below.
-	r = `^(?P<first>[a-z]+)\.?(?P<last>[a-z]+)?(?P<year>[0-9]{2,4})?@(?P<comp>[a-z]+)\.[a-z]+`
+	r = ``
 	p = regexp.MustCompile(r)
 )
 
@@ -51,13 +49,13 @@ func Extract(email string) string {
 	for i, name := range p.SubexpNames() {
 		switch name {
 		case "first":
-			ei.first = strings.Title(matches[i])
+			// TODO
 		case "last":
-			ei.last = strings.Title(matches[i])
+			// TODO
 		case "year":
-			ei.year, _ = strconv.Atoi(matches[i])
+			// TODO
 		case "comp":
-			ei.company = strings.ToUpper(matches[i])
+			// TODO
 		}
 	}
 	return ei.String()
