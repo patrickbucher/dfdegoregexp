@@ -1,0 +1,304 @@
+[b][size=150]Reguläre Ausdrücke in Go[/size][/b]
+
+In diesem Kursteil geht es um Behandlung regulärer Ausdrücke (fortan: «Regexp») in der Programmiersprache Go.
+
+[b][size=130]Offizielle Dokumentation[/size][/b]
+
+Go verfügt über sein eigenes Dokumentationssystem ([tt]go doc[/tt]). Folgende Einträge (als Befehl angegeben, verlinkt auf die HTML-Dokumentation) sind für das vorliegende Thema empfehlenswert:
+
+[list]
+[*] [url=https://pkg.go.dev/regexp][tt]go doc regexp[/tt][/url]
+[*] [url=https://pkg.go.dev/regexp#Regexp][tt]go doc regexp.Regexp[/tt][/url]
+[*] [url=https://pkg.go.dev/regexp/syntax][tt]go doc regexp/syntax[/tt][/url]
+[/list]
+
+Für eine Übung wird die Ausgabe von [tt]go doc[/tt] benötigt. Von daher ist es besser, sich gleich mit dem Befehl vertraut zu machen, statt sich nur auf HTML-Version zu verlassen.
+
+[b][size=130]Dateien zum Download[/size][/b]
+
+Da Go über keine REPL verfügt, sind die vorgestellten Programme etwas umfassender als etwa Python-Beispiele. Der Einfachheit halber können die ganzen Beispiele unter folgendem Link als Zip-Datei heruntergeladen werden:
+
+[list]
+[*] [url=https://github.com/patrickbucher/dfdegoregexp/releases/download/v0.1.0/dfdegoregexp.zip]dfdegoregexp.zip[/url]
+[/list]
+
+[b][size=130]Syntax[/size][/b]
+
+Go verwendet grundsätzlich die gleiche regexp-Syntax wie Perl oder Python. Genau genommen handelt es sich um die Syntax von [url=https://github.com/google/re2/wiki/Syntax]RE2[/url], mit kleineren Ausnahmen. Es ist aber auch möglich, die einfacheren ERE in Go zu verwenden. Hierzu stellt die [tt]regexp[/tt]-Bibliothek Funktionen mit dem [tt]POSIX[/tt]-Suffix zur Verfügung (mehr dazu später).
+
+[b][size=130]Implementierung[/size][/b]
+
+Die regexp-Implementierung von Go basiert auf der Arbeit von Ken Thompson in den 1960er-Jahren. Sie basiert auf endlichen Automaten und soll in ca. 400 Zeilen C-Code umsetzbar sein.
+
+Die Laufzeitkomplexität dieser Implementierung ([i]Thompson NFA[/i]: Thompson Non-Deterministic Finite Automaton) wächst linear zur Eingabe. Andere Implementierungen haben eine wesentlich höhere Laufzeitkomplexität. Siehe dazu den Beitrag von Russ Cox: [url=https://swtch.com/~rsc/regexp/regexp1.html]Regular Expression Matching Can Be Simple And Fast[/url] (Der Artikel ist von 2007: das Jahr, in dem die Entwicklung von Go lanciert worden ist; u.a. von Ken Thompson. Russ Cox gehört mittlerweile zum Kernteam von Go.)
+
+[b][size=130]Passt es? Einfaches Matching[/size][/b]
+
+Ein einfaches Matching kann mit der Funktion [tt]regexp.Match[/tt] umgesetzt werden:
+
+[code]
+func Match(pattern string, b []byte) (matched bool, err error)
+    Match reports whether the byte slice b contains any match of the regular
+    expression pattern. More complicated queries need to use Compile and the
+    full Regexp interface.
+[/code]
+
+Liegen die zu prüfenden Daten als String und nicht als Byte-Array vor, kann man [tt]regexp.MatchString[/tt] verwenden:
+
+[code]
+func MatchString(pattern string, s string) (matched bool, err error)
+    MatchString reports whether the string s contains any match of the regular
+    expression pattern. More complicated queries need to use Compile and the
+    full Regexp interface.
+[/code]
+
+Das folgende Beispiel reglexp (eine Kombination aus «REPL» und «Regexp») veranschaulicht die Verwendung der [tt]Match[/tt]-Funktion:
+
+[np=41732][/np]
+
+Das Beispiel lässt sich folgendermassen starten:
+
+[code]
+$ go run replexp/main.go '#[A-Fa-f0-9]{6}'
+[/code]
+
+Als Kommandozeilenargument wird die Regexp [tt]#[A-Fa-f0-9]{6}[/tt] verwendet, womit hexadezimale Farbangaben mit einleitendem Rautezeichen gematched werden können. Die Interaktion mit dem Programm sieht dann etwa folgendermassen aus:
+
+[code]
+#FFFFFF
+#FFFFFF
+#ffffff
+#ffffff
+#232323
+#232323
+#abc
+#foobar
+#deadbeef
+#deadbeef
+#999
+[/code]
+
+Eingabezeilen werden nach Betätigung von [tt][Return][/tt] nur dann erneut ausgegeben, sofern sie der Regexp genügen ([tt]#FFFFFF[/tt], [tt]#ffffff[/tt], [tt]#232323[/tt] usw.), andernfalls ([tt]#abc[/tt], [tt]#foobar[/tt], [tt]#999[/tt]) jedoch nicht.
+
+[b][size=110]Aufgabe 1[/size][/b]
+
+Probiere verschiedene Regexp als Kommandozeilenparameter aus. Gib anschliessend Zeilen ein, und überlege dir vor der Betätigung von [tt][Return][/tt], ob die Zeile der Regexp genügt oder nicht.
+
+[b][size=110]Aufgabe 2[/size][/b]
+
+In der obigen Wiedergabe der REPL-Interaktion wird die Zeichenkette [tt]#deadbeef[/tt] ausgegeben, obwohl diese länger als die geforderten sechs Zeichen ist. Warum ist das so, und wie lässt sich das korrigieren?
+
+[b][size=110]Aufgabe 3[/size][/b]
+
+Das Programm verwendet die [tt]regexp.Match[/tt]-Funktion, welche das Suchmuster als String und den Text, in dem zu suchen ist, als Byte-Array erwartet. Die [tt]regexp.MatchString[/tt]-Funktion arbeitet mit zwei String-Argumenten. Was muss alles umgestellt werden, damit [tt]MatchString[/tt] verwendet werden kann? (Siehe [tt]input.ReadBytes[/tt] im Code.) Wird der Code durch die Umstellung insgesamt kürzer und/oder besser lesbar, oder verschlechtert sich die Situation eher?
+
+[b][size=130]Kompilierung und [tt]Regexp[/tt]-Typ[/size][/b]
+
+Regexp können kompiliert und wiederverwendet werden. Das [tt]regexp[/tt]-Paket bietet vier Funktionen an, womit eine Regexp kompiliert und anschliessend als [tt]Regexp[/tt]-Typ wiederverwendet werden können:
+
+[list]
+[*][tt]func Compile(expr string) (*Regexp, error)[/tt]
+[*][tt]func CompilePOSIX(expr string) (*Regexp, error)[/tt]
+[*][tt]func MustCompile(str string) *Regexp[/tt]
+[*][tt]func MustCompilePOSIX(str string) *Regexp[/tt]
+[/list]
+
+Die Funktionen mit dem [tt]Must[/tt]-Präfix werfen eine Runtime Panic, wenn der angegebene Ausdruck nicht kompiliert werden kann. Das ist besonders bei hart codierten regulären Ausdrücken sinnvoll, sodass fehlerhafter Code möglichst früh und offensichtlich scheitert. Die beiden Funktionen [i]ohne[/i] Must-Prefix geben stattdessen einen [tt]error[/tt] zurück, wenn die Regexp nicht kompiliert werden kann. Darauf ist im Code entsprechend zu reagieren.
+
+Standardmässig wird die RE2-Syntax (PCRE mit kleinen Unterschieden) verwendet. Die Funktionen mit dem [tt]POSIX[/tt]-Suffix schränken die Syntax auf EREs ein.
+
+Durch die optionalen Präfixe [tt]Must[/tt] und [tt]POSIX[/tt] ergeben sich die obigen vier Funktionen.
+
+Hat man durch gelungene Kompilierung eine [tt]Regexp[/tt]-Struktur erhalten, bietet diese eine Vielzahl von Methoden an. Hier sollen nur die [tt]Find[/tt]-Methode und die [tt]Replace[/tt]-Methode mit ihren verschiedenen Ausprägungen von Interesse sein. ([tt]Match[/tt] und [tt]MatchString[/tt] sind auf der [tt]Regexp[/tt]-Struktur analog zu gebrauchen wie vom [tt]regexp[/tt]-Modul.)
+
+Die Methode [tt]Find[/tt] gibt es in verschiedenen Ausprägungen. Die folgenden Suffixe können in der angegebenen Reihenfolge angefügt werden, um die jeweilige Semantik zu erhalten. (Hier wird auf eine Eindeutschung der Dokumentation verzichtet):
+
+[list]
+[*][tt]All[/tt]: matches successive non-overlapping matches of the entire expression
+[*][tt]String[/tt]: the argument is a string; otherwise it is a slice of bytes
+[*][tt]Submatch[/tt]: the return value is a slice identifying the successive submatches of the expression
+[*][tt]Index[/tt]: matches and submatches are identified by byte index pairs within the input string
+[/list]
+
+Die Methodennamen folgen (gemäss Dokumentation) der Regexp:
+
+[code]
+Find(All)?(String)?(Submatch)?(Index)?
+[/code]
+
+Somit sind folgende Methoden vorhanden (zwei Varianten, die auf einem io.RuneReader basieren, sind der Vollständigkeit halber unten noch aufgeführt):
+
+[code]
+func (re *Regexp) Find(b []byte) []byte
+func (re *Regexp) FindAll(b []byte, n int) [][]byte
+func (re *Regexp) FindAllIndex(b []byte, n int) [][]int
+func (re *Regexp) FindAllString(s string, n int) []string
+func (re *Regexp) FindAllStringIndex(s string, n int) [][]int
+func (re *Regexp) FindAllStringSubmatch(s string, n int) [][]string
+func (re *Regexp) FindAllStringSubmatchIndex(s string, n int) [][]int
+func (re *Regexp) FindAllSubmatch(b []byte, n int) [][][]byte
+func (re *Regexp) FindAllSubmatchIndex(b []byte, n int) [][]int
+func (re *Regexp) FindIndex(b []byte) (loc []int)
+func (re *Regexp) FindString(s string) string
+func (re *Regexp) FindStringIndex(s string) (loc []int)
+func (re *Regexp) FindStringSubmatch(s string) []string
+func (re *Regexp) FindStringSubmatchIndex(s string) []int
+func (re *Regexp) FindSubmatch(b []byte) [][]byte
+func (re *Regexp) FindSubmatchIndex(b []byte) []int
+
+func (re *Regexp) FindReaderIndex(r io.RuneReader) (loc []int)
+func (re *Regexp) FindReaderSubmatchIndex(r io.RuneReader) []int
+[/code]
+
+Den kleineren Rest der Funktionen, die nicht dem genannten Muster entsprechen, kann man bequem mittels [tt](e)grep[/tt] finden:
+
+[code]
+$ go doc regexp.Regexp \
+    | grep -Ev 'Find(All)?(String)?(Submatch)?(Index)?' \
+    | grep '^func'
+[/code]
+
+Bei den [tt]Replace[/tt]-Methoden gibt es wiederum Varianten zur Ersetzung des gefundenen Textes mit Literalen ([tt]Literal[/tt]) bzw. einer Funktion ([tt]Func[/tt]), sowie Ausprägungen für Byte-Arrays und Strings ([tt]String[/tt]):
+
+[code]
+func (re *Regexp) ReplaceAll(src, repl []byte) []byte
+func (re *Regexp) ReplaceAllFunc(src []byte, repl func([]byte) []byte) []byte
+func (re *Regexp) ReplaceAllLiteral(src, repl []byte) []byte
+func (re *Regexp) ReplaceAllLiteralString(src, repl string) string
+func (re *Regexp) ReplaceAllString(src, repl string) string
+func (re *Regexp) ReplaceAllStringFunc(src string, repl func(string) string) string
+[/code]
+
+Für die nächste Übung kommt das Programm [tt]godocfuncs/main.go[/tt] zum Einsatz:
+
+[np=41733][/np]
+
+Dieses lässt sich folgendermassen ausführen:
+
+[code]
+$ go run godocfuncs/main.go [package]
+[/code]
+
+Es erwartet als Argument den Namen eines Go-Pakets oder -Symbols, wie z.B. [tt]string[/tt], [tt]regexp[/tt] oder [tt]regexp.Regexp[/tt]. Die Ausgabe der jeweiligen Dokumentationsseite ([tt]go doc string[/tt], [tt]go doc regexp[/tt] usw.) soll so gefiltert werden, dass nur die zum Paket gehörigen Funktionsdeklarationen ausgegeben werden sollen. Hierzu wird die Regexp [tt]functionDeclaration[/tt] und die Funktion [tt]dr.FilterLines[/tt] verwendet, welche in der Datei [tt]godocfuncs.go[/tt] definiert sind:
+
+[np=41734][/np]
+
+[b][size=110]Aufgabe 4[/size][/b]
+
+Die Regexp [tt]functionDeclaration[/tt] (als String) muss ergänzt werden, damit das Programm korrekt arbeitet. Hier ein Beispiel für eine korrekte Ausgabe:
+
+[code]
+$ go run godocfuncs/main.go regexp
+func Match(pattern string, b []byte) (matched bool, err error)
+func MatchReader(pattern string, r io.RuneReader) (matched bool, err error)
+func MatchString(pattern string, s string) (matched bool, err error)
+func QuoteMeta(s string) string
+[/code]
+
+Die Datei [tt]godocfuncs_test.go[/tt] enthält einen Testfall, der folgendermassen ausgeführt werden kann:
+
+[np=41735][/np]
+
+[code]
+$ go test -run TestFilterFuncLines
+[/code]
+
+[b][size=130]Sektionen von Manpages[/size][/b]
+
+Das Programm [tt]manperf/main.go[/tt] erwartet als Argumente einen beliebigen Befehl mit Kommandozeilenargumenten (z.B. [tt]man 3 printf[/tt] oder [tt]man go[/tt]). Der angegebene Befehl wird ausgeführt, und die Ausgabe davon vom Programm abgefangen. Aus der Ausgabe, die hierzu in der Form einer Manpage vorliegen muss, werden nun die einzelnen Sektionstitel extrahiert:
+
+[np=41736][/np]
+
+Hierzu werden drei Funktionen aus dem Paket [tt]dfdegoregexp[/tt] verwendet (Importname mit [tt]dr[/tt] verkürzt), welche allesamt in [tt]manperf.go[/tt] definiert sind:
+
+[np=41737][/np]
+
+[list]
+[*][tt]CommandOutput[/tt]: Die Funktion führt das angegebene Programm mit Argumenten aus und liefert dessen Ausgabe als ein String-Slice zurück.
+[*][tt]ExtractSectionsBad[/tt]: Die Funktion extrahiert die Sektionstitel aus der gegebenen Ausgabe und liefert sie als String-Slice zurück. [b]Die Implementierung ist fehlerhaft und inperformant![/b]
+[*][tt]ExtractSectionsBetter[/tt]: Die Funktion ist noch zu implementieren und aus [tt]manperf/main.go[/tt] aufzurufen.
+[/list]
+
+[b][size=110]Aufgabe 5[/size][/b]
+
+Öffne die Datei [tt]manperf_test.go[/tt] und betrachte den String-Slice [tt]expectedSections[/tt]. Rufe nun [tt]man man[/tt] auf, und überprüfe, ob die in [tt]expectedSections[/tt] aufgelisteten Sektionen mit der tatsächlichen Ausgabe von man man übereistimmen; auch in ihrer Reihenfolge. Nimm Korrekturen daran vor, falls nötig.
+
+[np=41738][/np]
+
+[b][size=110]Aufgabe 6[/size][/b]
+
+Implementiere die Funktion [tt]ExtractSectionsBetter[/tt], sodass der entsprechende Testfall [tt]TestExtractSectionsBetter[/tt] durchläuft. Dieser kann folgendermassen ausgeführt werden:
+
+[code]
+$ go test -run TestExtractSectionsBetter
+[/code]
+
+Läuft der Test durch, kannst du das Programm [tt]manperf/main.go[/tt] so umschreiben, dass die neue Funktion [tt]ExtractSectionsBetter[/tt] anstelle von [tt]ExtractSectionsBad[/tt] verwendet wird. Rufe nun das Programm mit einer beliebigen Manpage aus, und kontrolliere dessen Ausgabe, z.B.:
+
+[code]
+$ go run manperf/main.go man 3 printf
+[/code]
+
+[b][size=110]Aufgabe 7[/size][/b]
+
+Übertrage die funktioniertende Regexp aus der Funktion [tt]ExtractSectionsBetter[/tt] nach [tt]ExtractSectionsBad[/tt], sodass nun beide Testfälle durchlaufen:
+
+[code]
+$ go test -run TestExtractSections.*
+[/code]
+
+Verändere aber nicht die Struktur der Funktion [tt]ExtractSectionsBad[/tt] und verzichte auf eine kompilierte Regexp.
+
+Starte nun die Benchmarks für die beiden Funktionen (ohne Tests):
+
+[code]
+$ go test -bench . -run ^$
+[/code]
+
+(Dem aufmerksamen Leser dürfte mittlerweile aufgefallen sein, dass das Go-Tool auch reguläre Ausdrücke zur Selektion von Benchmarks und Testfällen akzeptiert.)
+
+Versuche die Implementierung von [tt]ExtractSectionsBetter[/tt] schnell zu machen. (Tipp: verwende eine kompilierte [tt]regexp.Regexp[/tt], falls du noch nicht auf diese Idee gekommen bist.)
+
+Ist die Variante der [tt]Compile[/tt]-Funktion mit dem [tt]POSIX[/tt]-Suffix schneller? Warum (nicht)?
+
+[b][size=130]Parsen von E-Mails; Gruppen[/size][/b]
+
+Im letzten Beispiel sollen Informationen aus E-Mail-Adressen ausgelesen werden. Die E-Mail-Adressen liegen in verschiedenen Formaten vor. Diese Formate sollen hier nicht definiert, sondern nur anhand vorgegebener Testfälle beschrieben werden. (Die zu implementierenden Regeln sind also induktiv zu erschliessen.)
+
+Die Datei [tt]emailextract_test.go[/tt] definiert die Testfälle:
+
+[np=41739][/np]
+
+Eine E-Mail-Adresse kann folgende Elemente enthalten:
+
+[list=1]
+[*] einen Vornamen (immer vorhanden)
+[*] einen Nachnamen (optional, nach dem Punkt)
+[*] ein Geburtsdatum (optional, vor dem @-Zeichen; eine zweistellige Zahl impliziert das 20. Jahrhundert)
+[*] einen Firmennamen (immer vorhanden, Domain ohne TLD; in Grossbuchstaben)
+[/list]
+
+Die Implementierung liegt in der Datei [tt]emailextract.go[/tt] vor:
+
+[np=41740][/np]
+
+Die Funktion [tt]Extract[/tt] nimmt einen String (die E-Mail-Adresse) entgegen, und gibt einen neuen String zurück. Das ganze passiert in mehreren Schritten:
+
+[list=1]
+[*] Das Pattern [tt]p[/tt] wird auf die E-Mail-Adresse angewendet, um Matches zu erzeugen (siehe [tt]go doc regexp.FindStringSubmatch[/tt]).
+[*] Die Matches von [tt]p[/tt] werden abgearbeitet. Mit [tt]p.SubexpNames[/tt] (siehe [tt]go doc regexp.SubexpNames[/tt]) erhält man eine Map, deren Key den Index und Value den Namen des Matches bezeichnet ([tt]i[/tt] kann als Index für [tt]matches[/tt] verwendet werden).
+[*] Es wird eine [tt]emailInfo[/tt]-Struktur erstellt, auf der die extrahierten Informationen gesammelt werden können. Anhand des Gruppennamens können die ausgelesenen Informationen mithilfe von [tt]switch[/tt]/[tt]case[/tt] ins richtige Feld der [tt]emailInfo[/tt]-Struktur abgelegt werden. (Siehe [tt]go doc strconv.Atoi[/tt] für Konvertierungen von String zu Integer).
+[*] Zuletzt wird die [tt]String[/tt]-Methode von [tt]emailInfo[/tt] verwendet, um die extrahierten Informationen in der Form auszugeben, wie sie vom Testfall erwartet werden. (Die [tt]String[/tt]-Methode ist bereits korrekt implementiert.)
+[/list]
+
+[b][size=110]Aufgabe 8[/size][/b]
+
+Rufe die Dokumentation zu Regexp-Syntax ([tt]go doc regexp/syntax[/tt]) auf und finde heraus, wie man «named capturing groups» definiert.
+
+Definiere nun die Regexp (Variable [tt]r[/tt] oben an der Datei [tt]emailextract.go[/tt]) und implementiere die Funktion [tt]Extract[/tt] zu Ende, indem zu die [tt]TODO[/tt]-Zeilen innerhalb der [tt]switch[/tt]/[tt]case[/tt]-Kontrollstruktur abarbeitest.
+
+Führe den Testfall aus, um die Implementierung zu überprüfen:
+
+[code]
+$ go test -run TestEmailExtract
+[/code]

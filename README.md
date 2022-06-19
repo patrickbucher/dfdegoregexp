@@ -30,8 +30,8 @@ Beispiele unter folgendem Link als Zip-Datei heruntergeladen werden:
 
 Go verwendet grundsätzlich die gleiche regexp-Syntax wie Perl oder Python. Genau
 genommen handelt es sich um die Syntax von
-[RE2](https://pkg.go.dev/regexp/syntax), mit kleineren Ausnahmen. Es ist aber
-auch möglich, die einfacheren ERE in Go zu verwenden. Hierzu stellt die
+[RE2](https://github.com/google/re2/wiki/Syntax), mit kleineren Ausnahmen. Es
+ist aber auch möglich, die einfacheren ERE in Go zu verwenden. Hierzu stellt die
 `regexp`-Bibliothek Funktionen mit dem `POSIX`-Suffix zur Verfügung (mehr dazu
 später).
 
