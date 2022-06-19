@@ -30,14 +30,16 @@ Beispiele unter folgendem Link als Zip-Datei heruntergeladen werden:
 
 Go verwendet grundsätzlich die gleiche regexp-Syntax wie Perl oder Python. Genau
 genommen handelt es sich um die Syntax von
-[RE2](https://pkg.go.dev/regexp/syntax), mit kleineren Ausnahmen.
+[RE2](https://pkg.go.dev/regexp/syntax), mit kleineren Ausnahmen. Es ist aber
+auch möglich, die einfacheren ERE in Go zu verwenden. Hierzu stellt die
+`regexp`-Bibliothek Funktionen mit dem `POSIX`-Suffix zur Verfügung (mehr dazu
+später).
 
 ## Implementierung
 
 Die regexp-Implementierung von Go basiert auf der Arbeit von Ken Thompson in den
-1960er-Jahren. Diese Implementierung wird auch in `grep` und `awk` verwendet.
-Sie basiert auf endlichen Automaten und soll in ca. 400 Zeilen C-Code umsetzbar
-sein.
+1960er-Jahren. Sie basiert auf endlichen Automaten und soll in ca. 400 Zeilen
+C-Code umsetzbar sein.
 
 Die Laufzeitkomplexität dieser Implementierung (_Thompson NFA_: Thompson
 Non-Deterministic Finite Automaton) wächst linear zur Eingabe. Andere
@@ -183,7 +185,7 @@ zu erhalten. (Hier wird auf eine Eindeutschung der Dokumentation verzichtet):
 - `Submatch`: the return value is a slice identifying the successive submatches of the expression
 - `Index`: matches and submatches are identified by byte index pairs within the input string
 
-Die Methodennamen folgen der Regexp:
+Die Methodennamen folgen (gemäss Dokumentation) der Regexp:
 
     Find(All)?(String)?(Submatch)?(Index)?
 
@@ -210,6 +212,13 @@ aufgeführt):
 
     func (re *Regexp) FindReaderIndex(r io.RuneReader) (loc []int)
     func (re *Regexp) FindReaderSubmatchIndex(r io.RuneReader) []int
+
+Den kleineren Rest der Funktionen, die _nicht_ dem genannten Muster entsprechen,
+kann man bequem mittels `(e)grep` finden:
+
+    $ go doc regexp.Regexp \
+        | grep -Ev 'Find(All)?(String)?(Submatch)?(Index)?' \
+        | grep '^func'
 
 Bei den `Replace`-Methoden gibt es wiederum Varianten zur Ersetzung des
 gefundenen Textes mit Literalen (`Literal`) bzw. einer Funktion (`Func`), sowie
