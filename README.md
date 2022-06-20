@@ -66,7 +66,7 @@ Liegen die zu prüfenden Daten als String und nicht als Byte-Array vor, kann man
         expression pattern. More complicated queries need to use Compile and the
         full Regexp interface.
 
-Das folgende Beispiel `reglexp` (eine Kombination aus «REPL» und «Regexp»)
+Das folgende Beispiel `replexp` (eine Kombination aus «REPL» und «Regexp»)
 veranschaulicht die Verwendung der `Match`-Funktion:
 
 ```go

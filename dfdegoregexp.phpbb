@@ -52,7 +52,7 @@ func MatchString(pattern string, s string) (matched bool, err error)
     full Regexp interface.
 [/code]
 
-Das folgende Beispiel reglexp (eine Kombination aus «REPL» und «Regexp») veranschaulicht die Verwendung der [tt]Match[/tt]-Funktion:
+Das folgende Beispiel replexp (eine Kombination aus «REPL» und «Regexp») veranschaulicht die Verwendung der [tt]Match[/tt]-Funktion:
 
 [np=41732][/np]
 
